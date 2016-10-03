@@ -1,0 +1,100 @@
+REPRODUCIBLE RESEARCH: ASSIGNMENT 1  
+
+
+
+```{r setoptions, echo=FALSE, results='hide',message=FALSE}
+library(ggplot2)
+library(Hmisc)
+options(warn=0)
+```
+
+DOWNLOAD AND LOAD ACTIVITY DATA 
+```{r, echo=TRUE}
+if(!file.exists('activity.csv')){
+  unzip('activity.zip')
+}
+data <- read.csv('activity.csv')
+
+str(data)
+head(data)
+```
+
+FORMAT DATE 
+```{r, echo=TRUE}
+data$date <- as.Date(data$date)
+head(data)
+class(data$date)
+```
+
+
+CALCULATE TOTAL STEPS TAKEN PER DAY:
+
+```{r, echo=TRUE,warning=FALSE}
+steps_day <- tapply(data$steps, data$date, sum)
+qplot(steps_day, xlab="Total steps per day", ylab="Frequency", binwidth=500)
+```
+   
+
+CALCULATE THE MEAN AND MEDIAN OF THE DATA SET:
+```{r, echo=TRUE}
+Daily_steps <- tapply(data$steps, data$date, sum, na.rm=TRUE)      
+mean_step <- mean(Daily_steps)
+mean_step
+median_step <- median(Daily_steps)
+median_step
+```
+
+
+
+CALCULATE THE MAXIMUM, 5-MINUTE INTERVAL:
+
+```{r, echo=TRUE,warning=FALSE}
+steps_interval <- aggregate(steps ~ interval, data, mean,rm.na=TRUE)
+names(steps_interval)[2] <- "MeanSteps"
+
+plot(steps_interval$interval,
+     steps_interval$MeanSteps,
+     type = "l",
+     main= "TIME-SERIES: Average of 5 minute Intervals, Averaged Accross all Days",
+     xlab="5-Minute Intervals",
+     ylab="Average Steps Taken")
+```
+
+
+WHAT INTERVAL CONTAINS THE MAX MEAN NUMBER OF STEPS?
+
+```{r, echo=TRUE, warning=FALSE}
+Max_Steps <- steps_interval[steps_interval$MeanSteps==max(steps_interval$MeanSteps),]
+Max_Steps
+```
+
+
+
+IMPUTE THE MISSING VALUE
+
+```{r, echo=TRUE}
+missing_values <- length(which(is.na(data$steps)))
+```
+
+CREATE AN IMBUTED DATA SET, REPLACING NA VALUES WITH MEAN. 
+
+```{r, echo=TRUE}
+NA_amount <- length(which(is.na(data$steps)))
+data_imputed <- data
+data_imputed$steps <- impute(data$steps, fun=mean)
+```
+
+CREATE A HISTOGRAM OF IMBUTED DATA:
+     
+```{r, echo=TRUE}
+steps_day_imputed <- tapply(data_imputed$steps, data_imputed$date, sum)
+qplot(steps_day_imputed, xlab="Total steps per day (Imputed)", ylab="Frequency", binwidth=500)
+
+#CALCULATE MEAN AND MEDIAN OF IMBUTED DATA:
+Daily_steps_imbuted <- tapply(data_imputed$steps, data_imputed$date, sum) 
+steps_day_imputed_mean <- mean(Daily_steps_imbuted)
+steps_day_imputed_mean
+steps_day_imputed_median <- median(Daily_steps_imbuted)
+steps_day_imputed_median
+```
+
